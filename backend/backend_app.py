@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -13,6 +13,54 @@ POSTS = [
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
     return jsonify(POSTS)
+
+
+@app.route('/api/posts', methods=['POST'])
+def add_post():
+    data = request.get_json()
+
+    # Fehler: Kein JSON
+    if not data:
+        return jsonify({"error": "Request body must be JSON"}), 400
+
+    title = data.get("title")
+    content = data.get("content")
+
+    # Fehler: Titel fehlt
+    if not title:
+        return jsonify({"error": "Field 'title' is required"}), 400
+
+    # Fehler: Inhalt fehlt
+    if not content:
+        return jsonify({"error": "Field 'content' is required"}), 400
+
+    # Neue eindeutige ID generieren
+    new_id = max([p["id"] for p in POSTS]) + 1 if POSTS else 1
+
+    new_post = {
+        "id": new_id,
+        "title": title,
+        "content": content
+    }
+
+    POSTS.append(new_post)
+
+    return jsonify(new_post), 201
+
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+def delete_post(post_id):
+    # Passenden Post finden
+    post = next((p for p in POSTS if p["id"] == post_id), None)
+
+    # Fehlerfall: ID existiert nicht
+    if post is None:
+        return jsonify({"error": f"Post with id {post_id} not found"}), 404
+
+    # Beitrag löschen
+    POSTS.remove(post)
+
+    return jsonify({"message": f"Post with id {post_id} has been deleted successfully."}), 200
 
 
 if __name__ == '__main__':
