@@ -66,7 +66,7 @@ def delete_post(post_id):
 # Update a post by ID
 @app.route('/api/posts/<int:id>', methods=['PUT'])
 def update_post(id):
-    post = next((p for p in posts if p["id"] == id), None)
+    post = next((p for p in POSTS if p["id"] == id), None)
     if post is None:
         return jsonify({"message": f"Post with id {id} not found."}), 404
 
@@ -81,6 +81,21 @@ def update_post(id):
         "title": post["title"],
         "content": post["content"]
     }), 200
+
+
+@app.route('/api/posts/search', methods=['GET'])
+def search_posts():
+    title_query = request.args.get("title", "").lower()
+    content_query = request.args.get("content", "").lower()
+
+    # Filter posts
+    results = [
+        post for post in POSTS
+        if (title_query in post["title"].lower() if title_query else True)
+           and (content_query in post["content"].lower() if content_query else True)
+    ]
+
+    return jsonify(results), 200
 
 
 if __name__ == '__main__':
