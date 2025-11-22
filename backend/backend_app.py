@@ -38,7 +38,6 @@ def get_posts():
     return jsonify(results), 200
 
 
-
 @app.route('/api/posts', methods=['POST'])
 def add_post():
     data = request.get_json()
